@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Explore the session</title>
+    
+    <script src="opencpu/jquery-1.10.2.min.js"></script>
+    <script src="opencpu/opencpu-0.4.js"></script>
+
+    <script>
+    //init this script when the page has loaded
+    $(document).ready(function(){
+      $("#submitbutton").on("click", function(){
+
+        //disable the button during upload
+        $("#submitbutton").attr("disabled", "disabled");
+
+        //perform the request
+        var req = ocpu.call(
+          "getdf", 
+          {},
+          function(session){
+			$("#getloc").text(session.getLoc())
+			$("#getkey").text(session.getKey())
+			$("#getloclink").attr("href", session.getLoc())
+			$.get(session.getLoc() + "source").then(function(responseData) {
+				$('#getloc-source code').text(responseData);
+			});
+			$.get(session.getLoc() + "info").then(function(responseData) {
+				$('#getloc-info code').text(responseData);
+			});
+			$.get(session.getLoc() + "files").then(function(responseData) {
+				$('#getloc-files code').text(responseData);
+			});
+			$("#printlink").attr("href", session.getLoc() + "R/.val/print")
+			$("#rdalink").attr("href", session.getLoc() + "R/.val/rda")
+			$("#csvlink").attr("href", session.getLoc() + "R/.val/csv")
+			$("#tablink").attr("href", session.getLoc() + "R/.val/tab")
+			$("#jsonlink").attr("href", session.getLoc() + "R/.val/json")
+			$("#mdlink").attr("href", session.getLoc() + "R/.val/md")
+			session.getConsole(function(data){
+			  $("#getconsole code").text(data)
+			});
+			session.getStdout(function(data){
+			  $("#getstdout code").text(data)
+			});
+		  }
+		);
+        
+        
+        //if R returns an error, alert the error message
+        req.fail(function(){
+          alert("Server error: " + req.responseText);
+        });
+        
+        //after request complete, re-enable the button 
+        req.always(function(){
+          $("#submitbutton").removeAttr("disabled")
+        });
+                
+      });
+             
+    });
+    </script>
+    
+    <style>
+
+    </style>
+    
+  </head>
+    
+  <body>
+    <h1>Session</h1>
+     
+    <button id="submitbutton" type="button">Run!</button>
+    <br>
+
+
+<h2>session.getConsole()</h2>
+<pre id="getconsole"><code></code></pre>
+<br>
+
+<h2>session.getStdout()</h2>
+<pre id="getstdout"><code></code></pre>
+<br>
+
+<h2>session.getKey()</h3>
+
+<p id="getkey"></p>
+
+<h2>session.getLoc()</h2>
+
+	<p>session.getLoc() : <a target="_blank" id="getloclink"><span id="getloc"></span></a></p>
+
+	<h3>session.getLoc() /source</h3>
+	
+	<pre id="getloc-source"><code></code></pre>
+
+	<h3>session.getLoc() /info</h3>
+	
+	<pre id="getloc-info"><code></code></pre>
+	
+	<h3>session.getLoc() /files</h3>
+	
+	<pre id="getloc-files"><code></code></pre>
+
+	<span><h3>session.getLoc() /R/.val</h3> (export the data frame)</span>
+
+    <ol>
+      <li><a target="_blank" id="rdalink">rdata</a></li>    
+      <li><a target="_blank" id="jsonlink">json</a></li>
+      <li><a target="_blank" id="csvlink">csv</a></li>
+      <li><a target="_blank" id="tablink">tab</a></li>
+      <li><a target="_blank" id="printlink">print</a></li>
+      <li><a target="_blank" id="mdlink">markdown</a></li>
+    </ol>
+
+
+
+    <p>
+     This page demonstrates the session object of the <code>open.call</code> function
+    </p>
+        
+  </body>
+</html>

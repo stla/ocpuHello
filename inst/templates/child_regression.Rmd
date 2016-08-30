@@ -1,0 +1,17 @@
+
+
+
+```{r}
+dd <- setNames(dat, c("x","y"))
+```
+
+
+```{r}
+summary(lm(y~x, data=dd))
+```
+
+
+```{r}
+conflevel; filetype; colnames(dat)
+```
+

@@ -1,0 +1,17 @@
+---
+author: "stla"
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
+params: 
+    set_title: "My Title!"
+---
+
+---
+title: `r params$set_title`
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+`r knitr::knit_child("child_regression.Rmd")`

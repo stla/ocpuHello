@@ -1,0 +1,68 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+	<title> Hello jsonTable 2 (only the df)</title>
+
+    <!-- Include order: first jquery, then opencpu.js, and then your code -->
+    <script src="opencpu/jquery-1.10.2.min.js"></script>
+    <script src="opencpu/opencpu-0.4.js"></script>
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+  	<script type="text/javascript" src="jsonTable/jsonTable.js"></script>
+  	<script type="text/javascript" charset="utf8" src="js/myjsontotable.js"></script>
+
+    <style type="text/css">
+        /* style for the rows */
+        #dataTable .classy {
+            color: green;
+        }
+    </style>
+
+    <script>
+    //init this script when the page has loaded
+    $(document).ready(function() {
+        $("#submitbutton").on("click", function() {
+            //disable the button to prevent multiple clicks
+            $("#submitbutton").attr("disabled", "disabled");
+
+            //perform the request
+            var req = ocpu.rpc(
+                "getIris2", {},
+                function(df) {
+                  var columns = Object.keys(df[0]);
+                  // create the table
+                  jsontotable("#dataTable", df, columns);
+                }
+            );
+
+            //if R returns an error, alert the error message
+            req.fail(function() {
+                alert("Server error: " + req.responseText);
+            });
+
+        });
+    });
+    </script>
+
+
+  </head>
+
+  <body>
+
+    <button id="submitbutton" type="button">Submit to server!</button>
+
+    <br><br>
+
+		<div class="container">
+			<div class="row">
+				<div class="col-sm-8" style="height:350px; display:block; overflow-y:auto">
+					<table id="dataTable"  class="table table-bordered"></table>
+				</div>
+				<div class="col-sm-4">
+				  <h4>Table created with <a href="https://github.com/omkarkhair/jsonTable">jsonTable.js</a>.</h4>
+				</div>
+			</div>
+    </div>
+
+  </body>
+</html>

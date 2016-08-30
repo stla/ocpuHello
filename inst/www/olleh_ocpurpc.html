@@ -1,0 +1,74 @@
+<html>
+  <head>
+
+    <!-- Include order: first jquery, then opencpu.js, and then your code -->
+    <script src="opencpu/jquery-1.10.2.min.js"></script>
+    <script src="opencpu/opencpu-0.4.js"></script>
+
+    <script>
+    //init this script when the page has loaded
+    $(document).ready(function(){
+
+      $("#submitbutton").on("click", function(){
+
+        //disable the button to prevent multiple clicks
+        $("#submitbutton").attr("disabled", "disabled");
+
+        //read the value for 'name'
+        var username = $("#namefield").val();
+
+        //perform the request
+        var req1 = ocpu.rpc(
+          "reverse",
+          {
+          string : username
+          },
+          function(reversedstring){
+            var req2 = ocpu.rpc(
+              "hello",
+              {
+              name : reversedstring
+              },
+              function(output){
+                $("#bidule").text(output.message);
+              }
+            );
+          }
+        );
+
+        //if R returns an error, alert the error message
+        req1.fail(function(){
+          alert("Server error: " + req1.responseText);
+        });
+
+        //after request complete, re-enable the button
+        req1.always(function(){
+          $("#submitbutton").removeAttr("disabled")
+        });
+
+      });
+
+    });
+    </script>
+
+    <style>
+      #output{
+        height: 80px;
+        width: 500px;
+        border: 1px solid gray;
+        padding: 3px;
+      }
+    </style>
+
+  </head>
+
+  <body>
+
+    <b>Your name: </b> <input type="text" id="namefield">
+
+    <button id="submitbutton" type="button">Submit to server!</button>
+
+    <p id="bidule"></p>
+
+  </body>
+</html>

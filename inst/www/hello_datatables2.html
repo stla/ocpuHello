@@ -1,0 +1,68 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+	<title> Hello Datatables 2 (unknown number of columns)</title>
+
+    <!-- Include order: first jquery, then opencpu.js, and then your code -->
+    <script src="opencpu/jquery-1.10.2.min.js"></script>
+    <script src="opencpu/opencpu-0.4.js"></script>
+	<link rel="stylesheet" type="text/css" href="http://cdn.datatables.net/1.10.12/css/jquery.dataTables.css">
+	<script type="text/javascript" charset="utf8" src="http://cdn.datatables.net/1.10.12/js/jquery.dataTables.js"></script>
+
+	<script type="text/javascript">
+	    function makeHeaders(columns)
+	    {
+	        var str ="";
+	        for(var i=0; i<columns.length; i++)
+	        {
+	            str+="<th>" + columns[i].data + "</th>";
+	        }
+	        return(str);
+	    }
+	</script>
+
+    <script>
+    //init this script when the page has loaded
+
+    $(document).ready(function(){
+      $("#submitbutton").on("click", function(){
+        //disable the button to prevent multiple clicks
+        $("#submitbutton").attr("disabled", "disabled");
+
+        //perform the request
+        var req = ocpu.rpc(
+          "getIris",
+          {},
+          function(output){
+            $.when($.ajax({success: function(result){
+              $('#mytable thead tr').append(makeHeaders(output.columns));
+            }})).then(function(){$('#mytable').DataTable(output)});
+          }
+        );
+
+        //if R returns an error, alert the error message
+        req.fail(function(){
+          alert("Server error: " + req.responseText);
+        });
+
+      });
+    });
+    </script>
+
+  </head>
+
+  <body>
+
+    <button id="submitbutton" type="button">Submit to server!</button>
+
+    <div class="container">
+      <table id="mytable" class="display">
+        <thead>
+          <tr role="row"></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+  </body>
+</html>

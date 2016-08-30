@@ -1,0 +1,224 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+	<title> Select numeric columns</title>
+
+    <!-- Include order: first jquery, then opencpu.js, and then your code -->
+    <script src="opencpu/jquery-1.10.2.min.js"></script>
+    <script src="opencpu/opencpu-0.4.js"></script>
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+  	<script type="text/javascript" src="jsonTable/jsonTable.js"></script>
+  	<script type="text/javascript" charset="utf8" src="js/myjsontotable.js"></script>
+  	<script type="text/javascript" src="flot/jquery.flot.min.js"></script>
+    <script type="text/javascript" src="flot/jquery.flot.axislabels.js"></script>
+  	<script type="text/javascript" src="jqplot/jquery.jqplot.min.js"></script>
+  	<script type="text/javascript" src="jqplot/plugins/jqplot.canvasAxisLabelRenderer.js"></script>
+  	<script type="text/javascript" src="jqplot/plugins/jqplot.canvasTextRenderer.js"></script>    <link rel="stylesheet" href="jqplot/jquery.jqplot.min.css">
+
+    <style type="text/css">
+        .classy {
+            color: gray;
+        }
+    </style>
+
+    <script>
+    //init this script when the page has loaded
+
+    $(document).ready(function() {
+        $("#submitbutton").on("click", function() {
+            //disable the button to prevent multiple clicks
+            $("#submitbutton").attr("disabled", "disabled");
+
+            //perform the request
+            var req1 = ocpu.call(
+                "getIris2", {},
+                function(session) {
+                    // get the dataframe in rows format
+                    $.get(session.getLoc() + "R/.val/json?dataframe=columns").then(function(responseData) {
+                        var dfcolumns = responseData;
+                        // find numeric columns
+                        var isNumeric = [];
+                        for (var key in dfcolumns) {
+                            isNumeric.push(!isNaN(parseFloat(dfcolumns[key][0])) && isFinite(dfcolumns[key][0]))
+                        } // que se passe-t-il si NA ?
+                        // store column names
+                        var columns = Object.keys(dfcolumns);
+                        // show the dropdown lists
+                        $("label[for$='selcolumn1']").text('Select one column');
+                        $("label[for$='selcolumn2']").text('Select another column');
+                        $('#selcolumn1, #selcolumn2').show();
+                        // create the table
+                        session.getObject(function(df) {
+                            jsontotable("#dataTable", df, columns, columns, "classy");
+                        });
+                        // create the selection lists
+                        var sels = $('#selcolumn1, #selcolumn2');
+                        sels.attr('size', columns.length);
+                        var colors = ['blue', 'green'];
+                        $.when($.ajax({
+                            success: function() {
+                                $(columns).each(function(index, item) {
+                                    sels.append($("<option>").attr('value', index).text(item));
+                                });
+                            }
+                        })).then(function() {
+                    			  // disable options for non-numeric columns
+                    			  $("#selcolumn1 option").each(function(index, option){
+                    			    if(!isNumeric[index]){
+                    			      $(option).attr('disabled', 'disabled')
+                    			    }
+                    			  })
+                    			  $("#selcolumn2 option").each(function(index, option){
+                    			    if(!isNumeric[index]){
+                    			      $(option).attr('disabled', 'disabled')
+                    			    }
+                    			  })
+                        });
+
+                        // onchange action
+                        var selids = ['#selcolumn1', '#selcolumn2'];
+                        $(".form-control").each(function(selindex, sel) {
+                            $(sel).change(function() {
+                                var selectedIndices = [$("#selcolumn1").prop('selectedIndex'), $("#selcolumn2").prop('selectedIndex')];
+                                if(selectedIndices[0] != -1 && selectedIndices[1] != -1){
+                                  $('#plotbutton').attr('disabled', false);
+                                }
+                                if (selectedIndices[0] == selectedIndices[1]) {
+                                    $(selids[1 - selindex] + ' option:selected').prop('selected', false);
+                                    selectedIndices[1 - selindex] = -99;
+                                    $('#plotbutton').attr('disabled', 'disabled');
+                                }
+                                // emphasize the selected column
+                                $('#dataTable tbody tr').each(function(i, item) {
+                                    $(item).find('td').each(function(index, td) {
+                                        if (index == selectedIndices[selindex]) {
+                                            $(td).css('color', colors[selindex]);
+                                        } else {
+                                            if (index != selectedIndices[1 - selindex]) {
+                                                $(td).css('color', 'gray');
+                                            }
+                                        }
+                                    });
+                                });
+                            });
+                        });
+
+                        // plot
+                        $('#plotbutton').click(function(){
+                          var col1 = $("#selcolumn1 option:selected").text();
+                          var col2 = $("#selcolumn2 option:selected").text();
+                          var x = dfcolumns[col1];
+                          var y = dfcolumns[col2];
+                          var data = [];
+                          for(i=0; i<x.length; i++){
+                            data.push([x[i],y[i]]);
+                          }
+                          // flot plot
+                          $(function () {
+                            var options = {
+                              series: {
+                                lines: { show: false },
+                                points: { show: true }
+                              },
+                              axisLabels: {
+                                show: true
+                              },
+                              xaxes: [{
+                                axisLabel: col1,
+                              }],
+                              yaxes: [{
+                                axisLabel: col2,
+                              }]
+                            };
+                            $.plot("#xyplot", [data], options);
+                          });
+                          // jqplot plot
+                          var jq = $.jqplot('xyjqplot',
+	                          [data],
+	                          {
+	                          	title:'Plot of ' + col2 + ' vs ' + col1,
+	                          	series:[{
+	                          	  color: '#5FAB78',
+	                          	  showLine: false
+	                          	}],
+	                          	axes:{
+	                          		xaxis:{
+	                          			label: col1
+	                          		},
+	                          		yaxis:{
+	                          			label: col2,
+	                          			labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
+                                  labelOptions:{
+                                    fontFamily:'Helvetica',
+                                    fontSize: '12pt'
+                                  }
+	                          		}
+	                          	}
+	                          }
+	                        );
+	                        jq.replot();
+                          // disable button
+                          $('#plotbutton').attr('disabled','disabled');
+                        })
+
+                    }); // end of $.get()
+                }
+            );
+
+            //if R returns an error, alert the error message
+            req1.fail(function() {
+                alert("Server error: " + req1.responseText);
+            });
+
+        });
+    });
+    </script>
+
+
+  </head>
+
+  <body>
+
+    <button id="submitbutton" type="button">Submit to server!</button>
+
+    <br>
+
+		<div class="container-fluid">
+			<div class="row">
+				<div class="col-sm-8" style="max-height:300px;overflow:auto">
+					<table id="dataTable"  class="table table-bordered"></table>
+				</div>
+				<div class="col-sm-2">
+    			<label for="selcolumn1" style="color:blue"></label>
+		    	<select class="form-control" id="selcolumn1" style="display:none"></select>
+				</div>
+				<div class="col-sm-2">
+    			<label for="selcolumn2" style="color:green"></label>
+		    	<select class="form-control" id="selcolumn2" style="display:none"></select>
+		    	<br>
+    		  <button id="plotbutton" type="button" disabled>Plot!</button>
+				</div>
+			</div>
+    </div>
+
+    <br>
+<!-- arranger ça : uniquement des col-sm-6 (mettre deux classes) -->
+    <div class="container-fluid"><div class="row">
+    		<div class="col-sm-6"><div class="plot-container" style="width:600px;display:block;margin-left:auto;margin-right:auto">
+		    	<div id="xyplot" class="plot-placeholder" style="width:600px;height:300px"></div>
+    		</div></div>
+	    	<div class="col-sm-6"><div class="jqplot-container" style="width:600px;display:block;margin-left:auto;margin-right:auto">
+		    	<div id="xyjqplot" class="plot-placeholder" style="width:600px;height:300px"></div>
+	    	</div></div>
+	 </div></div>
+	<!--	    	<h2>session.getConsole()</h2>
+          <pre id="getconsole"><code></code></pre>
+          <br>
+	        <p>session.getLoc() : <a target="_blank" id="getloclink"><span id="getloc"></span></a></p> -->
+
+
+
+
+  </body>
+</html>

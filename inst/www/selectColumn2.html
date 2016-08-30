@@ -1,0 +1,124 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+	<title> Select a column 2</title>
+
+    <!-- Include order: first jquery, then opencpu.js, and then your code -->
+    <script src="opencpu/jquery-1.10.2.min.js"></script>
+    <script src="opencpu/opencpu-0.4.js"></script>
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+  	<script type="text/javascript" src="jsonTable/jsonTable.js"></script>
+  	<script type="text/javascript" charset="utf8" src="jsonTable/myjsontotable.js"></script>
+
+    <style type="text/css">
+        .classy {
+            color: red;
+        }
+    </style>
+
+    <script>
+    //init this script when the page has loaded
+
+    $(document).ready(function(){
+      $("#submitbutton").on("click", function(){
+        //disable the button to prevent multiple clicks
+        $("#submitbutton").attr("disabled", "disabled");
+
+        //perform the request
+        var req1 = ocpu.rpc(
+          "getMtcars",
+          {},
+          function(output){
+            // create the columns
+			      jsontotable("#dataTable", output.data, output.columns, output.columns, "classy");
+			      // create the selection list
+			      var sel = $('#selcolumn');
+			      sel.attr('size', output.columns.length);
+			      $(output.columns).each(function(index, item) {
+				       sel.append($("<option>").attr('value',index).text(item));
+			      });
+        		$("#selcolumn").change(function(){
+  	    		  var selectedIndex = $("#selcolumn").prop('selectedIndex');
+  	    		  // emphasize the selected column
+	    		  	$("#getindex").text("This is column number " + selectedIndex);
+		  		  	$('#dataTable tbody tr').each(function(index, item){
+  				      $(item).find('td').each(function(index, td){
+	  			        if(index == selectedIndex){
+	    			        $(td).css('color', 'blue');
+		    		      }else{
+			    	        $(td).css('color', 'yellow');
+				          }
+  			  	    });
+	  		      });
+
+      	  	  // take its average with R
+  	    		  var dflist = output.list;
+  	    		  var x = dflist[output.columns[selectedIndex]];
+  	    		  // ou bien dflist[Object.keys(dflist)[selectedIndex]]
+  	    		  // pour avoir le json column à partir du dataframe: http://stackoverflow.com/questions/22718874/opencpu-and-jsonlite-column-based-json-versus-row-based
+  	    		  // donc avec $.get _link_
+    	    	  var req2 = ocpu.rpc(
+    	    	    "average",
+    	  	      {"x": x},
+    	  	      function(average){
+    	  	        $('#getaverage').text("Its average is " + average)
+    	  	     		//$("#getloc").text(session.getLoc());
+			            //$("#getloclink").attr("href", session.getLoc());
+    	  	      	//session.getConsole(function(data){
+          			  //   $("#getconsole code").text(data);
+		            	//});
+    	  	      }
+    	  	    )
+    	        req2.fail(function(){
+                alert("Server error: " + req2.responseText);
+              });
+
+      	  	});
+
+
+          }
+        );
+
+        //if R returns an error, alert the error message
+        req1.fail(function(){
+          alert("Server error: " + req1.responseText);
+        });
+
+
+      });
+    });
+    </script>
+
+
+  </head>
+
+  <body>
+
+    <button id="submitbutton" type="button">Submit to server!</button>
+
+		<div class="container">
+			<div class="row">
+				<div class="col-sm-7">
+					<table id="dataTable"  class="table table-bordered"></table>
+				</div>
+				<div class="col-sm-4">
+    			<label for="selcolumn">Select a column</label>
+		    	<select class="form-control" id="selcolumn"></select>
+		    	<p id="getindex"></p>
+		    	<p id="getaverage"></p>
+	<!--	    	<h2>session.getConsole()</h2>
+          <pre id="getconsole"><code></code></pre>
+          <br>
+	        <p>session.getLoc() : <a target="_blank" id="getloclink"><span id="getloc"></span></a></p> -->
+
+				</div>
+				<div class="col-sm-1"></div>
+			</div>
+    </div>
+
+
+
+
+  </body>
+</html>

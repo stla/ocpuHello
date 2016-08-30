@@ -1,0 +1,84 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <title> Hello Datatables 3 (only the dataframe returned by R)</title>
+
+  <!-- Include order: first jquery, then opencpu.js, and then your code -->
+  <script src="opencpu/jquery-1.10.2.min.js"></script>
+  <script src="opencpu/opencpu-0.4.js"></script>
+  <link rel="stylesheet" type="text/css" href="http://cdn.datatables.net/1.10.12/css/jquery.dataTables.css">
+  <script type="text/javascript" charset="utf8" src="http://cdn.datatables.net/1.10.12/js/jquery.dataTables.js"></script>
+
+  <script type="text/javascript">
+    function makeHeaders(colnames) {
+      var str = "";
+      for (var i = 0; i < colnames.length; i++) {
+        str += "<th>" + colnames[i] + "</th>";
+      }
+      return (str);
+    }
+  </script>
+
+  <script>
+    //init this script when the page has loaded
+    $(document).ready(function() {
+      $("#submitbutton").click(function() {
+        //disable the button
+        $("#submitbutton").attr("disabled", "disabled");
+
+        //perform the request
+        var req = ocpu.rpc(
+          "getIris2",
+          {},
+          function(df) {
+            // get the column names
+            var colnames = Object.keys(df[0]);
+            // create the JSON array for the columns required by DataTable
+            var columns = [];
+            for (i = 0; i < colnames.length; i++) {
+              var obj = {};
+              obj['data'] = colnames[i]
+              columns.push(obj);
+            }
+            // first make the header row, then run DataTable
+            $.when($.ajax({
+              success: function() {
+                $('#mytable thead tr').append(makeHeaders(colnames));
+              }
+            })).done(function() {
+              $('#mytable').DataTable({
+                data: df,
+                columns: columns
+              })
+            });
+          }
+        );
+
+        //if R returns an error, alert the error message
+        req.fail(function() {
+          alert("Server error: " + req.responseText);
+        });
+
+      });
+    });
+  </script>
+
+</head>
+
+<body>
+
+  <button id="submitbutton" type="button">Submit to server!</button>
+
+  <div style="width:600px;display:block;margin-left:auto;margin-right:auto">
+    <table id="mytable" class="display">
+      <thead>
+        <tr role="row"></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+</body>
+
+</html>
