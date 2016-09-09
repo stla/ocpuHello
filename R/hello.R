@@ -93,3 +93,30 @@ knitRegression <- function(dat, conflevel="95", filetype="word_document"){
                            params = list(set_title="Regression analysis"))
   return(basename(out))
 }
+
+#' plotly
+#' @export
+plotly <- function(dat){
+  dat <- as.data.frame(dat)
+  colnames(dat) <- c("x","y")
+  p <- plotly::plot_ly(dat, x = x, y = y, type="scatter", mode="markers", name="data")
+  p <- plotly::add_trace(p, x = x, y = fitted(lm(y~x, data=dat)), name="regression line",
+                         line = list(dash="dotted"))
+  #p <- plotly::layout(p, legend = list(x = 0.5, y = 1))
+  htmlwidgets::saveWidget(plotly::as.widget(p), "plotly.html")
+  return("plotly.html")
+}
+
+
+#' login
+#' @export
+login <- function(username, password){
+  users <- read.csv(system.file(package = "opencpuHello", "databases", "Users.csv"), stringsAsFactors = FALSE)
+  if(!(username %in% users$username)) return("unknown")
+  userpassword <- users$password[which(users$username==username)]
+  if(userpassword==password){
+    return("success")
+  }else{
+    return("wrong")
+  }
+}

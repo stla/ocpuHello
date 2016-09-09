@@ -83,6 +83,8 @@
 
 	</style>
 
+
+
 	<script>
 		$(document).ready(function() {
 
@@ -172,6 +174,7 @@
 								  $("#reportbutton").attr("disabled", false).removeClass("btn-danger").addClass("btn-primary");
 									$('#xyjqplot').show();
 									plot().replot();
+									plotly();
 								}
 								// emphasize the selected column
 								$('#dataTable tbody tr').each(function(i, item) {
@@ -236,6 +239,28 @@
 								// disable button
 								//$('#plotbutton').attr('disabled', 'disabled');
 						}
+
+            // plotly function
+            function plotly(){
+              var col1 = $("#selcolumn1 option:selected").text();
+							var col2 = $("#selcolumn2 option:selected").text();
+              var dflist = {};
+              dflist[col1] = dfcolumns[col1];
+              dflist[col2] = dfcolumns[col2];
+              var req = ocpu.call(
+                "plotly",
+                {
+                  dat: dflist
+                },
+                function(session){
+                  session.getObject(function(filename){
+                    var outputlink = session.getLoc() + "files/" + filename;
+                    $('#iframe').attr("src", outputlink);
+                  })
+                }
+              );
+
+            }
 
 						// generate report
 			      $("#reportbutton").on("click", function() {
@@ -383,6 +408,8 @@
 					</div>
 				</div>
 			</div>
+
+      <iframe id="iframe" width="600" height="300"></iframe>
 
 
 		</div>

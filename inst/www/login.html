@@ -1,0 +1,101 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+
+	<meta name="viewport" content="width=device-width, shrink-to-fit=no, initial-scale=1">
+
+	<title> Regression</title>
+
+	<script src="opencpu/jquery-3.1.0.min.js"></script>
+	<script src="opencpu/opencpu-0.5.js"></script>
+	<link rel="stylesheet" href="css/login.css">
+	<link rel="stylesheet" href="css/app.css">
+
+	<script src="bootstrap/js/bootstrap-4.0.0.min.js"></script>
+	<link rel="stylesheet" href="bootstrap/css/bootstrap-4.0.0.min.css">
+	<script src="bootstrap/js/bootstrap.file-input.js"></script>
+
+	<script>
+	Rlogin = function(){
+    var req = ocpu.rpc(
+			"login",
+			{
+			username: $("#username").val(),
+			password: $("#password").val()
+			},
+			function(result){
+				if(result!="success"){
+					$("#username").val("").attr("placeholder", "Username");
+					$("#password").val("").attr("placeholder", "Password");
+					if(result=="unknown"){
+						alert("Unknown username");
+					}else{
+						alert("Wrong password");
+					}
+				}else{
+					$(".login").hide();
+					$(".app").show();
+				}
+			}
+    );
+	}
+	</script>
+
+	<script>
+		$(document).ready(function() {
+
+      $('input[type=file]').bootstrapFileInput();
+
+		})
+	</script>
+
+</head>
+
+<body>
+
+<div class="login">
+	<form onsubmit="Rlogin(); return false;">
+		<h1>Login</h1>
+		<input type="text" id="username" placeholder="Username" required="required" />
+		<input type="password" id="password" placeholder="Password" required="required" />
+		<button type="submit" class="btn btn-primary btn-block btn-large">Let me in.</button>
+	</form>
+</div>
+
+<div class="app" style="display:none">
+
+	<div id="wrapper">
+
+		<!-- Sidebar -->
+		<div id="sidebar-wrapper">
+
+			<div class="container">
+				<div class="row">
+					<div class="col-sm-12">
+						<form id="csvform" onsubmit="return false;" enctype="multipart/form-data">
+							<input id="csvfile" type="file" title="Select a file" data-filename-placement="inside" class="btn btn-primary">
+						</form>
+					</div>
+				</div>
+			</div>
+
+		</div>
+		<!-- /#sidebar-wrapper -->
+
+		<!-- Page Content -->
+		<div id="page-content-wrapper">
+				<h1>You are logged in!</h1>
+		</div>
+		<!-- /#page-content-wrapper -->
+
+	</div>
+	<!-- /#wrapper -->
+
+</div>
+<!-- /.app -->
+
+
+</body>
+
+</html>
