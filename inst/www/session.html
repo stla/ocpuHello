@@ -2,7 +2,7 @@
 <html>
   <head>
     <title>Explore the session</title>
-    
+
     <script src="opencpu/jquery-1.10.2.min.js"></script>
     <script src="opencpu/opencpu-0.4.js"></script>
 
@@ -16,61 +16,69 @@
 
         //perform the request
         var req = ocpu.call(
-          "getdf", 
+          "getdf",
           {},
           function(session){
-			$("#getloc").text(session.getLoc())
-			$("#getkey").text(session.getKey())
-			$("#getloclink").attr("href", session.getLoc())
-			$.get(session.getLoc() + "source").then(function(responseData) {
-				$('#getloc-source code').text(responseData);
-			});
-			$.get(session.getLoc() + "info").then(function(responseData) {
-				$('#getloc-info code').text(responseData);
-			});
-			$.get(session.getLoc() + "files").then(function(responseData) {
-				$('#getloc-files code').text(responseData);
-			});
-			$("#printlink").attr("href", session.getLoc() + "R/.val/print")
-			$("#rdalink").attr("href", session.getLoc() + "R/.val/rda")
-			$("#csvlink").attr("href", session.getLoc() + "R/.val/csv")
-			$("#tablink").attr("href", session.getLoc() + "R/.val/tab")
-			$("#jsonlink").attr("href", session.getLoc() + "R/.val/json")
-			$("#mdlink").attr("href", session.getLoc() + "R/.val/md")
-			session.getConsole(function(data){
-			  $("#getconsole code").text(data)
-			});
-			session.getStdout(function(data){
-			  $("#getstdout code").text(data)
-			});
-		  }
-		);
-        
-        
+      			$("#getloc").text(session.getLoc())
+			      $("#getkey").text(session.getKey())
+			      $("#getloclink").attr("href", session.getLoc())
+			      $.get(session.getLoc() + "source").then(function(responseData) {
+				      $('#getloc-source code').text(responseData);
+			      });
+			      $.get(session.getLoc() + "info").then(function(responseData) {
+				      $('#getloc-info code').text(responseData);
+			      });
+			      $.get(session.getLoc() + "files").then(function(responseData) {
+				      $('#getloc-files code').text(responseData);
+			      });
+			      $("#printlink").attr("href", session.getLoc() + "R/.val/print")
+			      $("#rdalink").attr("href", session.getLoc() + "R/.val/rda")
+			      $("#csvlink").attr("href", session.getLoc() + "R/.val/csv")
+			      $("#tablink").attr("href", session.getLoc() + "R/.val/tab")
+			      $("#jsonlink").attr("href", session.getLoc() + "R/.val/json")
+			      $("#mdlink").attr("href", session.getLoc() + "R/.val/md")
+			      session.getConsole(function(data){
+			        $("#getconsole code").text(data)
+			      });
+			      session.getStdout(function(data){
+			        $("#getstdout code").text(data)
+			      });
+		      }
+		    );
+
         //if R returns an error, alert the error message
         req.fail(function(){
           alert("Server error: " + req.responseText);
         });
-        
-        //after request complete, re-enable the button 
+
+        //after request complete, re-enable the button
         req.always(function(){
           $("#submitbutton").removeAttr("disabled")
         });
-                
+
+        // get current directory
+        var wdreq = ocpu.rpc(
+          "getWD",
+          {},
+          function(output){
+            $("#wd").text(output);
+          }
+        );
+
       });
-             
+
     });
     </script>
-    
+
     <style>
 
     </style>
-    
+
   </head>
-    
+
   <body>
     <h1>Session</h1>
-     
+
     <button id="submitbutton" type="button">Run!</button>
     <br>
 
@@ -92,21 +100,21 @@
 	<p>session.getLoc() : <a target="_blank" id="getloclink"><span id="getloc"></span></a></p>
 
 	<h3>session.getLoc() /source</h3>
-	
+
 	<pre id="getloc-source"><code></code></pre>
 
 	<h3>session.getLoc() /info</h3>
-	
+
 	<pre id="getloc-info"><code></code></pre>
-	
+
 	<h3>session.getLoc() /files</h3>
-	
+
 	<pre id="getloc-files"><code></code></pre>
 
 	<span><h3>session.getLoc() /R/.val</h3> (export the data frame)</span>
 
     <ol>
-      <li><a target="_blank" id="rdalink">rdata</a></li>    
+      <li><a target="_blank" id="rdalink">rdata</a></li>
       <li><a target="_blank" id="jsonlink">json</a></li>
       <li><a target="_blank" id="csvlink">csv</a></li>
       <li><a target="_blank" id="tablink">tab</a></li>
@@ -119,6 +127,9 @@
     <p>
      This page demonstrates the session object of the <code>open.call</code> function
     </p>
-        
+
+    <h2>Current directory:</h2>
+    <p id="wd"></p>
+
   </body>
 </html>

@@ -120,3 +120,7 @@ login <- function(username, password){
     return("wrong")
   }
 }
+
+#' get working directory
+#' @export
+getWD <- function() getwd()
