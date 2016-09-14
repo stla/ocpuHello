@@ -1,0 +1,90 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+	<title> Hello angular table</title>
+	<script src="opencpu/jquery-1.10.2.min.js"></script>
+	<script src="opencpu/opencpu-0.4.js"></script>
+	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
+	<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+</head>
+
+<body>
+  <br><br>
+
+	<div ng-app="myApp" ng-controller="myCtrl">
+
+		<div class="container">
+			<div class="row">
+
+				<div class="col-sm-3 well">
+					<button id="submitbutton" type="button" ng-click="clicked()">Submit to server!</button>
+				</div>
+
+				<div class="col-sm-9" style="height:350px; display:block; overflow-y:auto">
+					<table id="dataTable" width="100%" class="table table-bordered table-striped">
+						<thead>
+							<tr>
+								<th ng-repeat="header in columns">
+									<a href="#" ng-click="sortTable(header)">
+										{{header}}
+										<span ng-show="sortType == header && !sortReverse" class="fa fa-caret-down"></span>
+										<span ng-show="sortType == header && sortReverse" class="fa fa-caret-up"></span>
+									</a>
+								</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr ng-repeat="row in jsonTable | orderBy:sortType:sortReverse">
+								<td ng-repeat="cell in row">{{cell}}</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+
+			</div>
+		</div>
+
+	</div>
+
+	<script>
+		var app = angular.module('myApp', []);
+
+		app.controller('myCtrl', function($scope) {
+			// on click action
+			$scope.clicked = function() {
+				//perform the request
+				var req = ocpu.rpc(
+					"getIris2",
+					{},
+					function(df) {
+						// the table without the hashkey
+						var jsonTable = angular.copy(df);
+						var columns = Object.keys(jsonTable[0]);
+						// send the table as JSON to the scope
+						$scope.$apply(function() {
+							// sort options
+							$scope.sortReverse = false;
+							$scope.sortTable = function(header) {
+								$scope.sortReverse = !$scope.sortReverse;
+								$scope.sortType = header;
+							}
+							// table
+							$scope.columns = columns;
+							$scope.jsonTable = df;
+						});
+					}
+				);
+				//if R returns an error, alert the error message
+				req.fail(function() {
+					alert("Server error: " + req.responseText);
+				});
+
+			}
+		});
+	</script>
+
+</body>
+
+</html>
