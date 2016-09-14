@@ -59,9 +59,6 @@
 					"getIris2",
 					{},
 					function(df) {
-						// the table without the hashkey
-						var jsonTable = angular.copy(df);
-						var columns = Object.keys(jsonTable[0]);
 						// send the table as JSON to the scope
 						$scope.$apply(function() {
 							// sort options
@@ -71,7 +68,7 @@
 								$scope.sortType = header;
 							}
 							// table
-							$scope.columns = columns;
+							$scope.columns = Object.keys(df[0]);
 							$scope.jsonTable = df;
 						});
 					}
